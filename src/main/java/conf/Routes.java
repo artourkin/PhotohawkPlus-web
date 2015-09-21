@@ -17,6 +17,7 @@
 package conf;
 
 
+import controllers.InvestigationController;
 import ninja.AssetsController;
 import ninja.Router;
 import ninja.application.ApplicationRoutes;
@@ -29,7 +30,8 @@ public class Routes implements ApplicationRoutes {
         
         router.GET().route("/").with(ApplicationController.class, "index");
         router.GET().route("/hello_world.json").with(ApplicationController.class, "helloWorldJson");
-        
+
+       // router.GET().route("/investigate/{ID}").with(InvestigationController.class,"run");
  
         ///////////////////////////////////////////////////////////////////////
         // Assets (pictures / javascript)
@@ -40,7 +42,7 @@ public class Routes implements ApplicationRoutes {
         ///////////////////////////////////////////////////////////////////////
         // Index / Catchall shows index page
         ///////////////////////////////////////////////////////////////////////
-        router.GET().route("/.*").with(ApplicationController.class, "index");
+       // router.GET().route("/.*").with(ApplicationController.class, "index");
     }
 
 }

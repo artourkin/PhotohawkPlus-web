@@ -16,25 +16,105 @@
 
 package controllers;
 
+import ninja.AssetsController;
+import ninja.Context;
 import ninja.Result;
 import ninja.Results;
+import ninja.params.Param;
 
 import com.google.inject.Singleton;
+import org.apache.commons.io.FileUtils;
+import utils.CSVReader;
+import utils.ImageBean;
+import utils.ImageOps;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Singleton
 public class ApplicationController {
 
-    public Result index() {
+    public Result index(Context ctx) {
 
-        return Results.html();
+        if (ctx.getParameter("isSimilar")!=null) {
+            String original = ctx.getSession().get("original");
+            String result = ctx.getSession().get("result");
+            String isSimilar = ctx.getParameter("isSimilar");
+            //saveResults(original, isSimilar);
+        }
+
+        ImageBean next=getNextImage();
+
+
+        String original_resized = ImageOps.downscale(next.getOriginal_PNG());
+        String result_resized = ImageOps.downscale(next.getResult_PNG());
+
+        Result result=Results.html();
+        result.render("original",imageToAssets(next.getOriginal_PNG()));
+        result.render("original_resized",imageToAssets(original_resized));
+        result.render("result",imageToAssets(next.getResult_PNG()));
+        result.render("result_resized",imageToAssets(result_resized));
+        return result;
+    }
+    List<ImageBean> result_images;
+
+    String imageToAssets(String input){
+        File file=new File(input);
+        File copyTo=null;
+        if (file.exists()){
+            String filename=file.getName();
+
+            try {
+                copyTo=new File("src/main/java/assets/images/"+filename);
+                FileUtils.copyFile(file,copyTo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        if (copyTo!=null) {
+            String path = copyTo.getPath();
+            if (path.startsWith("src/main/java")) {
+                path=path.replace("src/main/java", "");
+
+            }
+            return path;
+        }
+        return input;
 
     }
-    
+
+    private void saveResults(String original, String isSimilar) {
+        ImageBean image=input_images.get(0);
+        image.setIsSimilar(Boolean.parseBoolean(isSimilar));
+        result_images.add(image);
+    }
+
+    List<ImageBean> input_images;
+    private ImageBean getNextImage() {
+        ImageBean result=null;
+        if (input_images==null){
+            try {
+                input_images= CSVReader.readWithCsvBeanReader("src/test/java/resources/images.csv");
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
+        }
+        if (input_images!=null && input_images.size()>0)
+            result= input_images.remove(0);
+        return  result;
+    }
+
     public Result helloWorldJson() {
         
         SimplePojo simplePojo = new SimplePojo();
-        simplePojo.content = "Hello World! Hello Json!";
+        simplePojo.content = "Hello <b>World!</b> Hello Json!";
+
 
         return Results.json().render(simplePojo);
 
